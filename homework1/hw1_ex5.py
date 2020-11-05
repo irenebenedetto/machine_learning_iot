@@ -22,7 +22,6 @@ UP, DOWN = 1, 3
 RATE, CHANNELS, CHUNK_SIZE, L, FORMAT = 48000, 1, 1024, 1, pyaudio.paInt16
 
 for sample in range(num_sample):
-    #execution_time = time.time()
 
     p = pyaudio.PyAudio()
     stream = p.open(format = FORMAT, channels = CHANNELS, rate = RATE, input=True)
@@ -37,11 +36,14 @@ for sample in range(num_sample):
     stream.close()
     p.terminate()
 
-    audio = b''.join(frames)
 
+    audio = b''.join(frames)
+    
+    
     # to float tensor
     audio = tf.audio.decode_wav(audio)
 
+    t1 = time.time()
     # for sample rate conversion to reduce the memory requirements and accelerate the subsequent processing steps
     audio = signal.resample_poly(audio, UP, DOWN) # the resampling is UP/DOWN of the original sampling rate
 
@@ -76,6 +78,11 @@ for sample in range(num_sample):
 
     new_file_name = output_file + str(sample) + '.png'
     tf.io.write_file(new_file_name, image_png)
+    
+    preproc_time = time.time() - t1
+    
+    print(f"Preprocessing time: {preproc_time}")
+    
     print(f'Image "{new_file_name}" saved!')
 
     size = path.getsize(new_file_name)
