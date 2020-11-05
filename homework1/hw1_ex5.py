@@ -6,11 +6,17 @@ parser.add_argument('-output',type=float, help='period in seconds')
 
 """
 
-import sys
-import time 
-import numpy as np
-import pyaudio
 
+import io
+import pyaudio
+import wave
+import time
+import sys
+import numpy as np
+from os import path
+from scipy.io import wavfile
+from scipy import signal
+import tensorflow as tf
 
 num_sample = int(sys.argv[1])
 output_file = sys.argv[2]
@@ -31,24 +37,41 @@ for sample in range(num_sample):
             # NUMBER OF SAMPLES IN A BLOCK OF DATA
         data = stream.read(CHUNK_SIZE)
         frames.append(data)
-
+        
     stream.stop_stream()
     stream.close()
     p.terminate()
 
-
-    audio = b''.join(frames)
+    """
+    buffer = io.BytesIO()
+    wf = wave.open(buffer, 'wb')
+    wf.setnchannels(CHANNELS)
+    wf.setsampwidth(p.get_sample_size(FORMAT))
+    wf.setframerate(RATE)
+    wf.writeframes(b''.join(frames))
+    wf.close()
+    """
     
-    
-    # to float tensor
-    audio = tf.audio.decode_wav(audio)
-
+    #_, audio = wavfile.read(io.BytesIO(b''.join(frames)))
     t1 = time.time()
     # for sample rate conversion to reduce the memory requirements and accelerate the subsequent processing steps
+    #rate, audio = wavfile.read(buffer)
     audio = signal.resample_poly(audio, UP, DOWN) # the resampling is UP/DOWN of the original sampling rate
-
-    spectrogram = tf.io.parse_tensor(audio, out_type=tf.float32)
-
+    #audio = audio.astype(np.int16)
+    audio = tf.convert_to_tensor(audio)
+    
+    print(type(audio))
+    print(audio.shape)
+    #spectrogram = tf.io.parse_tensor(audio, out_type=tf.float32)
+    #tf_audio = tf.squeeze(audio, 1)
+    
+    frame_length = int(16000 * 0.04) #???
+    frame_step = int(16000 * 0.02)
+    
+    stft = tf.signal.stft(audio, frame_length=frame_length, frame_step=frame_step, fft_length=frame_length)
+    
+    spectrogram = tf.abs(stft) 
+    
     num_spectrogram_bins = spectrogram.shape[-1]
     linear_to_mel_weight_matrix = tf.signal.linear_to_mel_weight_matrix(num_mel_bins, num_spectrogram_bins, RATE, lower_frequency, upper_frequency)
 
