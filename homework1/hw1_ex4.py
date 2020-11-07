@@ -45,7 +45,7 @@ with tf.io.TFRecordWriter(output_file) as writer:
 
       # read audio file
       raw_audio = tf.io.read_file(path_audio)
-      audio, _ = tf.audio.decode_wav(raw_audio)
+      # audio, _ = tf.audio.decode_wav(raw_audio)
 
       audio_feature = tf.train.Feature(bytes_list=tf.train.BytesList(value=[raw_audio.numpy()]))
       #audio_feature = tf.train.Feature(float_list=tf.train.FloatList(value=[audio]))
