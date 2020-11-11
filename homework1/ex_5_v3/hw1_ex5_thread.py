@@ -8,9 +8,15 @@ from os import path
 from scipy.io import wavfile
 from scipy import signal
 import tensorflow as tf
-import subprocess
 from subprocess import Popen
 import argparse
+from threading import Thread
+
+def performance():
+    Popen(['sudo sh -c "echo performance > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor"'], shell=True)
+
+def powersave():
+    Popen(['sudo sh -c "echo powersave > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor"'], shell=True)
 
 parser=argparse.ArgumentParser()
 parser.add_argument('--num-samples', type=int, help='input file folder')
@@ -25,9 +31,6 @@ output_fts, num_mel_bins, lower_frequency, upper_frequency = 10, 40, 20, 4000
 UP, DOWN = 1, 3
 frame_length, frame_step = 640, 320
 
-#Reset the monitor and set powersave
-Popen(['sudo sh -c "echo 1 > /sys/devices/system/cpu/cpufreq/policy0/stats/reset"'], shell=True)
-
 buffer = io.BytesIO()
 num_spectrogram_bins = 321
 linear_to_mel_weight_matrix = tf.signal.linear_to_mel_weight_matrix(num_mel_bins, num_spectrogram_bins, RATE, lower_frequency, upper_frequency)
@@ -35,15 +38,12 @@ linear_to_mel_weight_matrix = tf.cast(linear_to_mel_weight_matrix, dtype=tf.floa
 
 p = pyaudio.PyAudio()
 stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True)
-
-process1 = Popen(['sudo sh'], text=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                stdin=subprocess.PIPE)
+#Reset the monitor and set powersave
+Popen(['sudo sh -c "echo 1 > /sys/devices/system/cpu/cpufreq/policy0/stats/reset"'], shell=True)
 
 for sample in range(num_sample):
 
     t2 = time.time()
-    #subprocess.Popen(['sudo sh -c "echo performance > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor"'],shell=True)
-
     stream.start_stream()
     buffer.seek(0)  # pointer rewind
 
@@ -55,10 +55,11 @@ for sample in range(num_sample):
 
     for i in range(int(RATE/CHUNK_SIZE*L)):
         buffer.write(stream.read(CHUNK_SIZE, exception_on_overflow=False))
+        if i == 38:
+            t = Thread(target=performance)
+            t.start()
 
-        if i == 41:
-            #tp = time.time()
-            process1.communicate('echo performance > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor')# if .wait() the execution will not be in parallel and takes  155 milliseconds
+    t1 = time.time()
     stream.stop_stream()
     buffer.seek(0)
 
@@ -81,15 +82,14 @@ for sample in range(num_sample):
     mfcc_serialized = tf.io.serialize_tensor(mfccs)
 
     tf.io.write_file(new_file_name, mfcc_serialized)
-    process1 = Popen(['sudo sh'], text=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                     stdin=subprocess.PIPE)
-
-
+    t = Thread(target=powersave)
+    t.start()
     print(f"Complete time: {time.time() - t2}")
-    Popen(['sudo sh -c "echo powersave > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor"'], shell=True)
+    print(f'Preprocessing only: {time.time() - t1}')
 
-#Print the total time for the different VF levels
-Popen(['cat /sys/devices/system/cpu/cpufreq/policy0/stats/time_in_state'], shell=True)
+
 
 stream.close()
 p.terminate()
+#Print the total time for the different VF levels
+Popen(['cat /sys/devices/system/cpu/cpufreq/policy0/stats/time_in_state'], shell=True)
