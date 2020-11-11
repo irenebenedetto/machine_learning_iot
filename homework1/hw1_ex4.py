@@ -53,10 +53,10 @@ with tf.io.TFRecordWriter(output_file) as writer:
       # crate the dictionary for the structure of each record
       mapping = {
           
-          'a': posix_feature, 
-          'b': temp_feature,
-          'c': humidity_feature,
-          'd': audio_feature,
+          'datetime': posix_feature, 
+          'temperature': temp_feature,
+          'humidity': humidity_feature,
+          'audio': audio_feature,
 
       }
       example = tf.train.Example(features=tf.train.Features(feature=mapping)) 
