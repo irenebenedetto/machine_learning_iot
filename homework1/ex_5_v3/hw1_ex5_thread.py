@@ -13,7 +13,7 @@ from subprocess import Popen
 import argparse
 from threading import Thread
 
-os.close(sys.stderr.fileno()) 
+os.close(sys.stderr.fileno())
 
 def performance():
     Popen(['sudo sh -c "echo performance > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor"'], shell=True)
@@ -35,12 +35,10 @@ UP, DOWN = 1, 3
 frame_length, frame_step = 640, 320
 
 n_cycles = int(RATE/CHUNK_SIZE)*L
-
 n = int(n_cycles - (n_cycles * 150)/1000) -1
-print(n)
-
-print(f'Chunks {n_cycles}')
 buffer = io.BytesIO()
+
+# Compute the matrix
 num_spectrogram_bins = 321
 linear_to_mel_weight_matrix = tf.signal.linear_to_mel_weight_matrix(num_mel_bins, num_spectrogram_bins, RATE, lower_frequency, upper_frequency)
 linear_to_mel_weight_matrix = tf.cast(linear_to_mel_weight_matrix, dtype=tf.float32)
@@ -49,15 +47,17 @@ p = pyaudio.PyAudio()
 stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK_SIZE)
 
 #Reset the monitor and set powersave
-Popen(['sudo sh -c "echo 1 > /sys/devices/system/cpu/cpufreq/policy0/stats/reset"'], shell=True).wait() 
+Popen(['sudo sh -c "echo 1 > /sys/devices/system/cpu/cpufreq/policy0/stats/reset"'], shell=True).wait()
+Popen(['sudo sh -c "echo powersave > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor"'], shell=True).wait()
 
+# Start the loop
 for sample in range(num_sample):
 
-    t_start = time.time()
-    
+    t_start = time.time() 
+
     stream.start_stream()
     buffer.seek(0)  # pointer rewind
-    
+
     # it does 20 cycles
     # each cycle takes 50 milliseconds
     # the Popen instantiation takes 50 milliseconds
@@ -65,15 +65,13 @@ for sample in range(num_sample):
     # anticipate 100/21.74 = 3 for loops --> scaling_governor at iteration i = (20-3) -1 = 16
 
     for i in range(n_cycles):
-        
         data = stream.read(num_frames=CHUNK_SIZE, exception_on_overflow=False)
         buffer.write(data)
+        # set performance mode
         if i == n:
             t = Thread(target=performance)
             t.start()
 
-    
-    t_rec = time.time()
     stream.stop_stream()
     buffer.seek(0)
 
@@ -96,15 +94,15 @@ for sample in range(num_sample):
     mfcc_serialized = tf.io.serialize_tensor(mfccs)
 
     tf.io.write_file(new_file_name, mfcc_serialized)
+
+    # set powersave mode
     t = Thread(target=powersave)
     t.start()
-    t_stop = time.time()
-    print(f"Complete time: {t_stop - t_start}")
-    print(f"Recording time: {t_rec - t_start}")
-    
 
-    
-stream.close()    
+    t_stop = time.time()
+    print(f"{t_stop - t_start}") #Print the latency
+
+stream.close()
 p.terminate()
 #Print the total time for the different VF levels
 Popen(['cat /sys/devices/system/cpu/cpufreq/policy0/stats/time_in_state'], shell=True)
