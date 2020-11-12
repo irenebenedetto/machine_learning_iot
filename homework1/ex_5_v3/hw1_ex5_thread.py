@@ -36,6 +36,9 @@ frame_length, frame_step = 640, 320
 
 n_cycles = int(RATE/CHUNK_SIZE)*L
 
+n = int(n_cycles - (n_cycles * 150)/1000) -1
+print(n)
+
 print(f'Chunks {n_cycles}')
 buffer = io.BytesIO()
 num_spectrogram_bins = 321
@@ -65,7 +68,7 @@ for sample in range(num_sample):
         
         data = stream.read(num_frames=CHUNK_SIZE, exception_on_overflow=False)
         buffer.write(data)
-        if i == 16:
+        if i == n:
             t = Thread(target=performance)
             t.start()
 
