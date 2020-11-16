@@ -36,7 +36,8 @@ linear_to_mel_weight_matrix = tf.cast(linear_to_mel_weight_matrix, dtype=tf.floa
 
 p = pyaudio.PyAudio()
 stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK_SIZE)
-
+stream.stop_stream()
+Popen(['sudo sh -c "echo powersave > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor"'], shell=True).wait()
 #Reset the monitor and set powersave
 Popen(['sudo sh -c "echo 1 > /sys/devices/system/cpu/cpufreq/policy0/stats/reset"'], shell=True).wait() 
 
