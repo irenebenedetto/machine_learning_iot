@@ -249,7 +249,7 @@ if __name__ == "__main__":
     optimizer = tf.keras.optimizers.Adam(learning_rate=LR)
     
     # model_name, alpha, input_shape, output_shape, final_sparsity
-    model = MyModel(model_name, alpha, input_shape, output_shape,BATCH_SIZE, final_sparsity)
+    model = MyModel(model_name, alpha, input_shape, output_shape, version,BATCH_SIZE, final_sparsity)
     model.compile_model(optimizer, loss_function, eval_metric)
     history = model.train_model(train_ds, val_ds, N_EPOCH, callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler)])
 
