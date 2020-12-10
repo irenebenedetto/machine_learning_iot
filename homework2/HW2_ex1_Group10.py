@@ -32,13 +32,13 @@ class WindowGenerator:
 
         return inputs, labels
 
-    def make_dataset(self, data, train):
+    def make_dataset(self, data, train, batch_size=32):
         ds = tf.keras.preprocessing.timeseries_dataset_from_array(
             data=data,
             targets=None,
             sequence_length=12,
             sequence_stride=1,
-            batch_size=32)
+            batch_size=batch_size)
 
         ds = ds.map(self.preprocess, num_parallel_calls=tf.data.experimental.AUTOTUNE)
         ds = ds.cache()
@@ -49,9 +49,9 @@ class WindowGenerator:
 
 
 class MyModel:
-    def __init__(self, model_name, alpha, input_shape, output_shape,version, final_sparsity=None):
+    def __init__(self, model_name, alpha, input_shape, output_shape,version, batch_size=32, final_sparsity=None):
 
-        if model_name.lower() == 'mlp':
+        if model_name.lower() == 'mlp_b':
             # create the mlp model
             model = tf.keras.Sequential([
                 tf.keras.layers.Flatten(input_shape=input_shape, name='flatten'),
@@ -62,20 +62,21 @@ class MyModel:
 
             ])
 
-        elif model_name.lower() == 'cnn':
-            # create the cnn model
+        elif model_name.lower() == 'mlp_a':
+            # create the mlp model
             model = tf.keras.Sequential([
-                tf.keras.layers.Conv1D(input_shape=input_shape, filters=int(64 * alpha), kernel_size=3,
-                                       activation='relu', name='conv1d'),
-                tf.keras.layers.Flatten(),
-                tf.keras.layers.Dense(int(alpha * 64), activation='relu', name='first_dense'),
-                tf.keras.layers.Dense(12, name='second_dense'),
+                tf.keras.layers.Flatten(input_shape=input_shape, name='flatten'),
+                tf.keras.layers.Dense(int(alpha * 128), activation='relu', name='first_dense'),
+                tf.keras.layers.Dense(12, name='third_dense'),
                 tf.keras.layers.Reshape(output_shape)
+
             ])
+
 
         model.summary()
         self.model = model
         self.alpha = alpha
+        self.batch_size = batch_size
         self.final_sparsity = final_sparsity
         self.model_name = model_name.lower()
         self.version = version.lower()
@@ -104,7 +105,7 @@ class MyModel:
             prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
             self.model = prune_low_magnitude(self.model, **pruning_params)
 
-            input_shape = [32, 6, 2]
+            input_shape = [self.batch_size, 6, 2]
             self.model.build(input_shape)
 
         self.model.compile(
@@ -175,13 +176,34 @@ if __name__ == "__main__":
 
     version = args.version.lower()
     if version == 'a':
-        pass
+        model_name = 'mlp_a'
+        alpha = 0.3
+        final_sparsity = 0.9
+        N_EPOCH = 70
+        LR = 0.1
+        BATCH_SIZE = 512
+
+        MILESTONE = [10, 50, 60]
+        def scheduler(epoch, lr):
+            if epoch in MILESTONE:
+                return lr*0.1
+            else:
+                return lr
+
+
     else:
         alpha = 0.1
         final_sparsity = 0.85
-        model_name = 'mlp'
+        model_name = 'mlp_b'
         N_EPOCH = 20
         LR = 0.01
+        BATCH_SIZE = 32
+
+        def scheduler(epoch, lr):
+            if epoch % 10 == 0:
+                return lr
+            else:
+                return lr
 
     seed = 42
     tf.random.set_seed(seed)
@@ -209,9 +231,9 @@ if __name__ == "__main__":
 
     input_width = 12
     generator = WindowGenerator(input_width, mean, std)
-    train_ds = generator.make_dataset(train_data, True)
-    val_ds = generator.make_dataset(val_data, False)
-    test_ds = generator.make_dataset(test_data, False)
+    train_ds = generator.make_dataset(train_data, True, BATCH_SIZE)
+    val_ds = generator.make_dataset(val_data, False, BATCH_SIZE)
+    test_ds = generator.make_dataset(test_data, False, BATCH_SIZE)
 
     # extracting paramenters for model creation
     for x, y in train_ds:
@@ -220,18 +242,14 @@ if __name__ == "__main__":
         break
 
 
-    def scheduler(epoch, lr):
-        if epoch % 10 == 0:
-            return lr
-        else:
-            return lr
+
 
     eval_metric = [CustomMAE()]
     loss_function = [tf.keras.losses.MeanSquaredError()]
     optimizer = tf.keras.optimizers.Adam(learning_rate=LR)
     
     # model_name, alpha, input_shape, output_shape, final_sparsity
-    model = MyModel(model_name, alpha, input_shape, output_shape, final_sparsity)
+    model = MyModel(model_name, alpha, input_shape, output_shape,BATCH_SIZE, final_sparsity)
     model.compile_model(optimizer, loss_function, eval_metric)
     history = model.train_model(train_ds, val_ds, N_EPOCH, callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler)])
 
