@@ -218,7 +218,7 @@ class MyModel:
         converter.optimizations = [tf.lite.Optimize.DEFAULT]
 
         tflite_model = converter.convert()
-        with open(f'./Group10_kws_{self.version}.tflite.zlib', 'wb') as fp:
+        with open(f'./{self.version}.tflite.zlib', 'wb') as fp:
             tflite_compressed = zlib.compress(tflite_model)
             fp.write(tflite_compressed)
 
@@ -230,7 +230,7 @@ class MyModel:
         # convert the model into a tflite version
         tflite_model = converter.convert()
 
-        with open(f'./Group10_kws_{self.version}.tflite', 'wb') as fp:
+        with open(f'./{self.version}.tflite', 'wb') as fp:
             fp.write(tflite_model)
 
 if __name__ == '__main__':

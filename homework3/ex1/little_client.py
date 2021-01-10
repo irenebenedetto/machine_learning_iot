@@ -16,12 +16,15 @@ frame_length, frame_step = 256, 128
 sampling_rate = 16000
 
 
+
+
 def read(file_path, labels):
     parts = tf.strings.split(file_path, os.path.sep)
     label = parts[-2]
     label_id = tf.argmax(label == labels)
     audio_binary = tf.io.read_file(file_path)
     audio, _ = tf.audio.decode_wav(audio_binary)
+
     audio = tf.squeeze(audio, axis=1)
 
     return audio, label_id
@@ -41,6 +44,8 @@ def get_spectrogram(audio):
     return spectrogram
 
 
+
+
 if __name__ == '__main__':
     ENCODING = 'utf-8'
     communication_cost = 0.0
@@ -51,62 +56,63 @@ if __name__ == '__main__':
         model_zip = zlib.decompress(fp.read())
         interpreter = tf.lite.Interpreter(model_content=model_zip)
 
-        interpreter.allocate_tensors()
-        input_details = interpreter.get_input_details()
-        output_details = interpreter.get_output_details()
+    interpreter.allocate_tensors()
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
 
-        y_pred = interpreter.get_tensor(output_details[0]['index'])
+    y_pred = interpreter.get_tensor(output_details[0]['index'])
 
-        test_files = open('./kws_test_split.txt', 'r').read().splitlines()
+    test_files = open('./kws_test_split.txt', 'r').read().splitlines()
 
-        theta = 0.9
-        accuracy = 0
+    theta = 0.05
+    accuracy = 0
 
-        for file_path in tqdm.tqdm(test_files):
-            audio, y_true = read(file_path, LABELS)
-            audio_padded = pad(audio)
+    for it, file_path in enumerate(tqdm.tqdm(test_files)):
+        audio, y_true = read(file_path, LABELS)
+        audio_padded = pad(audio)
 
-            spectrogram = get_spectrogram(audio_padded)
-            spectrogram = tf.expand_dims(spectrogram, -1)
-            spectrogram = tf.image.resize(spectrogram, [56, 56])
+        spectrogram = get_spectrogram(audio_padded)
+        spectrogram = tf.expand_dims(spectrogram, -1)
+        spectrogram = tf.image.resize(spectrogram, [56, 56])
+        
+        interpreter.set_tensor(input_details[0]['index'], [spectrogram])
 
-            interpreter.set_tensor(input_details[0]['index'], [spectrogram])
-            interpreter.invoke()
-            y_pred = interpreter.get_tensor(output_details[0]['index'])[0]
+        interpreter.invoke()
+        y_pred = interpreter.get_tensor(output_details[0]['index'])[0]
+        y_pred = y_pred / np.linalg.norm(y_pred)
+        list_sm = tf.sort(y_pred, direction='DESCENDING')[:2]
+        sm = list_sm[0] - list_sm[1]
 
-            list_sm = tf.sort(y_pred, direction='DESCENDING')[:2]
+        if sm < theta:
+            audio_bytes = base64.b64encode(audio)
+            audio_string = audio_bytes.decode(ENCODING)
 
-            sm = list_sm[0] - list_sm[1]
+            request = {
+                "bn": "127.0.0.1",
+                "bt": int(datetime.datetime.now().timestamp()),
+                "e": [
+                    {"n": "a", "u": "/", "t": 0, "vd": audio_string}
+                ]
+            }
+            request = json.dumps(request)
 
-            if sm < theta:
-                audio_bytes = base64.b64encode(audio)
-                audio_string = audio_bytes.decode(ENCODING)
-
-                request = {
-                    "bn": "https://mqtt.eclipseprojects.io",
-                    "bt": int(datetime.datetime.now().timestamp()),
-                    "e": [
-                        {"n": "label", "u": "/", "t": 0, "vd": audio_string}
-                    ]
-                }
-                request = json.dumps(request)
-                print(f'Request size: {len(request)}')
-                communication_cost += len(request)
-                print(f'Total communication cost: {communication_cost}')
-                r = requests.post('http://127.0.0.1:8080/big_model', request)
-                if r.status_code == 200:
-                    y_pred = r.json()['e'][0]['v']
-                else:
-                    print('Error with the big model prediction')
+            communication_cost += len(request)
+            print(f'Total communication cost: {communication_cost/(1024*1024)}')
+            r = requests.post('http://127.0.0.1:8080/big_model', request)
+            if r.status_code == 200:
+                y_pred = r.json()['e'][0]['v']
             else:
-                y_pred = tf.argmax(y_pred)
+                print('Error with the big model prediction')
+        else:
+            y_pred = tf.argmax(y_pred)
 
-            if y_pred == y_true:
-                accuracy +=1
+        if y_pred == y_true:
+            accuracy +=1
+            print(f'Accuracy: {accuracy/(it+1)}')
 
-        accuracy = round(accuracy/len(test_files)*100, 3)
-        print(f'Accuracy: {accuracy}%')
-        print(f'Communication Cost: {communication_cost/(1024*1024)} MB')
+    accuracy = round(accuracy/len(test_files)*100, 3)
+    print(f'Accuracy: {accuracy}%')
+    print(f'Communication Cost: {communication_cost/(1024*1024)} MB')
 
 
 

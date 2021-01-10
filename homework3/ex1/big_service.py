@@ -6,13 +6,14 @@ import datetime
 import tensorflow as tf
 import numpy as np
 from scipy import signal
+import wave
 
 class BigModelGenerator(object):
     exposed = True
 
 
     def POST(self):
-        UP, DOWN = 16000, 32000
+
         body = cherrypy.request.body.read()
         body = json.loads(body)
 
@@ -31,11 +32,9 @@ class BigModelGenerator(object):
         """
 
         audio = body["e"][0]["vd"]
-        audio = base64.b64decode(audio)
-        with io.BytesIO() as buffer:
-            buffer.write(audio)
+        audio = base64.b64decode(audio.encode())
 
-            audio = signal.resample_poly(np.frombuffer(buffer.getvalue(), dtype=np.int16), UP, DOWN)
+        audio = np.frombuffer(audio, dtype=np.float32)
 
         sampling_rate = 16000
         frame_length, frame_step = 640, 320
