@@ -9,12 +9,12 @@ import datetime
 import threading 
 import queue
 
-N = 2
+N = 1
 ENCODING = 'utf-8'
 sampling_rate = 16000
 frame_length, frame_step = 640, 320
 lower_frequency, upper_frequency = 20, 4000
-num_coefficients = 10
+num_coefficients = 32
 num_mel_bins = 40
 
 num_spectrogram_bins = (frame_length) // 2 + 1
@@ -73,11 +73,29 @@ class PredictionReceiver(DoSomething):
 			if len(self.predictions) == N:
 				break
 
-		y_pred = tf.zeros(np.array(self.predictions[0]).shape)
+		#y_pred = tf.zeros(np.array(self.predictions[0]).shape)
+		y_pred = []
+		y_pred_sm = []
 		for logits in self.predictions:
-			y_pred += tf.nn.softmax(logits)
-		y_pred = y_pred/N
-		prediction = tf.argmax(y_pred)
+			y_pred.append(tf.argmax(tf.nn.softmax(logits)))
+			list_sm = tf.sort(tf.nn.softmax(logits), direction='DESCENDING')[:2]
+			sm = list_sm[0] - list_sm[1]
+			y_pred_sm.append(sm)  
+
+		print(f'{y_pred}')
+		index = tf.argmax(y_pred_sm)
+		#u, c = np.unique(np.array(y_pred), return_counts = True)
+		counts = np.bincount(np.array(y_pred))
+		max_counts = np.where(counts == counts.max())[0]
+
+		if len(max_counts)>1:
+			prediction = y_pred[index]
+		else:
+			prediction = max_counts[0]
+
+		print(f'y_pred_sm:{y_pred_sm} counts:{counts}')
+		print(f'{prediction}')
+	
 		self.predictions = []
 		return prediction
 
