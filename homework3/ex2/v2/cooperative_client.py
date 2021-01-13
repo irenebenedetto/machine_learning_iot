@@ -146,7 +146,7 @@ if __name__ == "__main__":
 		# y_pred = sub.queue.get()
 		if y_pred == y_true:
 			accuracy +=1
-		print(f"accuracy: {accuracy/(it+1)}")
+		print(f"Accuracy: {round(accuracy/(it+1), 4)} on mfcc number {it+1} of {len(test_files)}")
 		time.sleep(1.5)
 		
 	accuracy = round(accuracy/len(test_files)*100, 3)
