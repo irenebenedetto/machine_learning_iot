@@ -150,6 +150,6 @@ if __name__ == "__main__":
 		time.sleep(1.5)
 		
 	accuracy = round(accuracy/len(test_files)*100, 3)
-	print(f"Accuracy: {accuracy}")
+	print(f"Final Accuracy: {accuracy}")
 	pub.end()
 	sub.end()
