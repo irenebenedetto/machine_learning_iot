@@ -66,7 +66,6 @@ class PredictionReceiver(DoSomething):
 			if len(self.predictions) == N:
 				break
 
-		#y_pred = tf.zeros(np.array(self.predictions[0]).shape)
 		y_pred = []
 		y_pred_sm = []
 		for logits in self.predictions:
@@ -76,8 +75,7 @@ class PredictionReceiver(DoSomething):
 			y_pred_sm.append(sm)  
 
 		index = tf.argmax(y_pred_sm)
-        #counts = np.bincount(np.array(y_pred).astype(int))
-		counts = np.bincount(np.array(y_pred))
+        counts = np.bincount(np.array(y_pred).astype(int))
 		max_counts = np.where(counts == counts.max())[0]
 
 		if len(max_counts)>1:

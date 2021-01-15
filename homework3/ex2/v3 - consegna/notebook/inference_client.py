@@ -45,8 +45,8 @@ class Inference(DoSomething):
             ]
         }
 		response = json.dumps(response)
-		print ("publishing '%s' with topic '%s'" % ('logits', f" /Team10/277959/result"))
-		self.publisher.myMqttClient.myPublish (f" /Team10/277959/result", (response))
+		print ("publishing '%s' with topic '%s'" % ('logits', f"/Team10/277959/result"))
+		self.publisher.myMqttClient.myPublish (f"/Team10/277959/result", (response))
 		
 
 if __name__ == "__main__":
