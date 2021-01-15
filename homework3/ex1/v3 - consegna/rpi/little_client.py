@@ -3,11 +3,9 @@ import os
 import numpy as np
 import tensorflow as tf
 import zlib
-import tensorflow_model_optimization as tfmot
 from scipy.signal import resample_poly
 import base64
 import json
-import tqdm
 import datetime
 import requests
 
@@ -71,7 +69,7 @@ if __name__ == '__main__':
     theta = 0.35
     accuracy = 0
 
-    for it, file_path in enumerate(tqdm.tqdm(test_files)):
+    for it, file_path in enumerate(test_files):
         audio, y_true = read(file_path, LABELS)
         audio_padded = pad(audio)
 
@@ -115,7 +113,8 @@ if __name__ == '__main__':
 
         if y_pred == y_true:
             accuracy +=1
-
+        
+        #print(f'Partial accuracy: {round(accuracy/(it+1)*100, 3)}%', '\r')
     accuracy = round(accuracy/len(test_files)*100, 3)
     print(f'Accuracy: {accuracy}%')
     print(f'Communication Cost: {communication_cost/(1024*1024)} MB')

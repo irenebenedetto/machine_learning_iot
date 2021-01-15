@@ -7,6 +7,7 @@ import tensorflow as tf
 import numpy as np
 from scipy import signal
 import wave
+import os
 
 class BigModelGenerator(object):
     exposed = True
@@ -83,5 +84,7 @@ if __name__ == '__main__':
             }
     }
     cherrypy.tree.mount(BigModelGenerator(), '/big_model', conf)
+    cherrypy.config.update({'server.socket_host': '127.0.0.1'})
+    cherrypy.config.update({'server.socket_port': 8080})
     cherrypy.engine.start()
     cherrypy.engine.block()

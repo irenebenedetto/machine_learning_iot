@@ -45,8 +45,8 @@ class Inference(DoSomething):
             ]
         }
 		response = json.dumps(response)
-		print ("publishing '%s' with topic '%s'" % ('logits', f"/277959/result"))
-		self.publisher.myMqttClient.myPublish (f"/277959/result", (response))
+		print ("publishing '%s' with topic '%s'" % ('logits', f"/irene277959/result"))
+		self.publisher.myMqttClient.myPublish (f"/irene277959/result", (response))
 		
 
 if __name__ == "__main__":
@@ -56,11 +56,11 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 	path = args.model.lower()
     
-	pub = DoSomething(f"publisher_inference_{path}")
+	pub = DoSomething(f"publisher_inference_irene_{path}")
 	pub.run()
-	sub = Inference(f"subscriber_inference_{path}",pub)
+	sub = Inference(f"subscriber_inference_irene_{path}",pub)
 	sub.run()
-	sub.myMqttClient.mySubscribe("/277959/mfcc")
+	sub.myMqttClient.mySubscribe("/irene277959/mfcc")
 
 
 	while(True):
