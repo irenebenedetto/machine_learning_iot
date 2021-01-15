@@ -6,8 +6,6 @@ import json
 import base64
 import numpy as np
 import datetime
-import threading 
-import queue
 
 N = 5
 ENCODING = 'utf-8'
@@ -56,11 +54,7 @@ def get_mfcc(spectrogram):
 class PredictionReceiver(DoSomething):
 	def __init__(self,clientID):
 		super(PredictionReceiver,self).__init__(clientID)
-		self.lock = threading.Lock()
-		#self.lock.acquire()
 		self.predictions = [] #list of logits
-		#self.lock.release()
-		#self.queue = queue.Queue()
 
 	def notify(self, topic, msg):
 		data = json.loads(msg) 
