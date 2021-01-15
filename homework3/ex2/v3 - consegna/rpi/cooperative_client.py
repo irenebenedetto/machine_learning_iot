@@ -9,7 +9,7 @@ import datetime
 import threading 
 import queue
 
-N = 3
+N = 5
 ENCODING = 'utf-8'
 sampling_rate = 16000
 frame_length, frame_step = 640, 320
@@ -82,6 +82,7 @@ class PredictionReceiver(DoSomething):
 			y_pred_sm.append(sm)  
 
 		index = tf.argmax(y_pred_sm)
+        #counts = np.bincount(np.array(y_pred).astype(int))
 		counts = np.bincount(np.array(y_pred))
 		max_counts = np.where(counts == counts.max())[0]
 
@@ -106,11 +107,11 @@ if __name__ == "__main__":
 	test_files = open('./kws_test_split.txt', 'r').read().splitlines()
 	LABELS = np.loadtxt('./labels.txt', dtype=str)
 
-	pub = DoSomething("publisher")
+	pub = DoSomething("publisher_cooperative")
 	pub.run()
-	sub = PredictionReceiver("subscriber")
+	sub = PredictionReceiver("subscriber_cooperative")
 	sub.run()
-	sub.myMqttClient.mySubscribe(f"/277959/result")
+	sub.myMqttClient.mySubscribe(f"/Team10/277959/result")
 	
 	accuracy = 0
 	for it, file_path in enumerate(test_files):
@@ -130,7 +131,7 @@ if __name__ == "__main__":
             ]
         }
 		message = json.dumps(response)
-		pub.myMqttClient.myPublish ("/277959/mfcc", (message))
+		pub.myMqttClient.myPublish ("/Team10/277959/mfcc", (message))
 		y_pred = sub.get_prediction()
 		if y_pred == y_true:
 			accuracy +=1
