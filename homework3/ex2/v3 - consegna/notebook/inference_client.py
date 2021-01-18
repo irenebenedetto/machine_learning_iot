@@ -38,12 +38,10 @@ class Inference(DoSomething):
 		logits = self.interpreter.get_tensor(self.output_details[0]['index'])[0]
 
 		response = {
-            "bn": "modeln",
-            "bt": int(datetime.datetime.now().timestamp()),
-            "e": [
-                {"n": "logits", "u": "/", "t": 0, "v": logits.tolist()}
-            ]
-        }
+                    "bn": "modeln",
+                    "bt": int(datetime.datetime.now().timestamp()),
+                    "e": [{"n": "logits", "u": "/", "t": 0, "v": logits.tolist()}]
+                }
 		response = json.dumps(response)
 		print ("publishing '%s' with topic '%s'" % ('logits', f"/Team10/277959/result"))
 		self.publisher.myMqttClient.myPublish (f"/Team10/277959/result", (response))

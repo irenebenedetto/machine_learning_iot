@@ -114,14 +114,13 @@ if __name__ == "__main__":
 		mfcc_string = base64.b64encode(mfcc).decode(ENCODING)
 		shape = mfcc.shape.as_list()
 		response = {
-            "bn": "pi@raspberrypi",
-            "bt": int(datetime.datetime.now().timestamp()),
-            "e": [
-                {"n": "mfcc", "u": "/", "t": 0, "v": mfcc_string},
-				{"n": "it", "u": "/", "t": 0, "v": it},
-				{"n": "shape", "u": "/", "t":0, "v": shape}
-            ]
-        }
+                    "bn": "pi@raspberrypi",
+                    "bt": int(datetime.datetime.now().timestamp()),
+                    "e": [
+                        {"n": "mfcc", "u": "/", "t": 0, "v": mfcc_string},
+                        {"n": "it", "u": "/", "t": 0, "v": it},
+                        {"n": "shape", "u": "/", "t":0, "v": shape}]
+                }
 		message = json.dumps(response)
 		pub.myMqttClient.myPublish ("/Team10/277959/mfcc", (message))
 		y_pred = sub.get_prediction()
