@@ -1,4 +1,4 @@
-﻿# Homework 1
+# Homework 1
 
 ## Background 1: Sensor Fusion
 
@@ -10,7 +10,7 @@ Many prediction tasks can benefit from exploiting data originating from differen
 Inspired by humans that use the five basic senses to sense and process information, sensor fusion relies on the hypothesis that the analysis of multiple sources of data improves the prediction accuracy. In sensor fusion applications, the training pipeline is therefore fed with structured data. An efficient
 implementation requires to organize and prepare the data in order to create datasets compliant with the specifications of standard training frameworks.
 
-## HowTo 2: TFRecord Datasets
+## HowTo 2: TFRecord Datasets
 
 Data movement represents one of the major bottlenecks in neural network training. Indeed, standard training pipelines encompasses the transfer of a massive amount of data from the main storage to the computational units, e.g. from the hard drive to the GPU memory. Fetching data from large storages is slow and energy costly. To mitigate this issue, raw data should be packed in serialized sequences of binary records. In this way, the data will reside in consecutive locations of memory, thus accelerating parallel fetching operations.
 
@@ -31,8 +31,7 @@ Voltage Frequency (VF) scaling therefore enables a cubic reduction of power.
 
 To limit the power consumption, the SoC should run at maximum performance (VFmax) only for short periods, e.g. to meet tight timing constraints in critical and intensive tasks. Otherwise, the SoC can operate into a low-power state (VFmin) and save power without impact on the user experience.
 
-
-## HowTo 4: DVFS on the Raspberry Pi
+## HowTo 4: DVFS on the Raspberry Pi
 
 On Unix-based operating systems (e.g. Raspian), the DVFS is managed by an operating system routine called governor. The standard governor can select two main policies: *performance* and *powersave*. In *performance* mode, the VF level is set to the maximum value VFmax=0.86V @ 1.5GHz, whereas in *powersave* mode, it is set to the minimum value VFmin=0.81V @ 600MHz.
 
@@ -62,7 +61,8 @@ cat /sys/devices/system/cpu/cpufreq/policy0/stats/time\_in\_state
 ```
 Note that there exists intermediate VF levels and other governor policies, which will be not considered in this homework.
 
-## Exercise 4: Data Preparation: Sensor Fusion Dataset with TFRecord (3pt)
+
+## Exercise 4: Data Preparation: Sensor Fusion Dataset with TFRecord (3pt)
 
 Write a Python script on your notebook to build a *TFRecord* Dataset containing temperature, humidity, and one-second audio samples (Int16 resolution at 48KHz), collected at different datetimes and stored as raw data in a single folder as shown in following example:
 ```bash
