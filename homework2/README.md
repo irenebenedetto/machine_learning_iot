@@ -36,7 +36,7 @@ Submit the TFLite models (named `GroupN_kws_a.tflite`, `GroupN_kws_b.tflite`, `G
 The script should take as input argument the model version:
 
 ```bash
-     python HW2_ex2_GroupN.py -–version <VERSION>
+python HW2_ex2_GroupN.py -–version <VERSION>
 ```
 where $N$ is the group ID and ```<VERSION>``` is “a”, “b”, or “c”, and return the TFLite file.
 In the report, explain and motivate the methodology adopted to meet the constraints (discuss on pre-processing, model architecture, optimizations, hyper-parameters, etc.).
