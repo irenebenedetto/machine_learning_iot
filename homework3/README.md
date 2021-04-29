@@ -45,14 +45,14 @@ the TFLite files with zlib, append ```.zlib``` to the filenames.
 Organize the files in two different folders, named notebook and rpi respectively, depending on the target device where the commands should run. In the report, briefly describe the Big/Little models and the “success checker” policy adopted. 
 
 ## Exercise 2: Cooperative Inference
-Develop a client application that receives a pre-processed audio signal, classify its content, and send the output of the last neural network layer (in JSON format). Run different $N$ ($N$ is an optimization parameter, `N > 1`) instances of the same application, each of them running a different prediction model (in tflite format). The application instances could potentially run on different devices (suggestion: launch them on different shells on your notebook). To run the application, develop a Python command with the following specifications:
+Develop a client application that receives a pre-processed audio signal, classify its content, and send the output of the last neural network layer (in JSON format). Run different `N` (`N` is an optimization parameter, `N > 1`) instances of the same application, each of them running a different prediction model (in tflite format). The application instances could potentially run on different devices (suggestion: launch them on different shells on your notebook). To run the application, develop a Python command with the following specifications:
  
 SYNOPSIS:
 ```bash
 python inference_client.py --model <model_path>
 ```
 where model_path is the path to the tflite model.
-On your Raspberry Pi, develop a client application that sequentially read an audio signal from the Speech Command test-set (the signals are listed in test_files.txt from the Portale), apply some pre-processing, send the pre-processed signal (in SenML+JSON format) to the inference clients, and retrieve the neural networks outputs. Define and implement a cooperative inference policy to compute the final prediction combining the outcomes of the different inference clients. To run the application, develop a Python command with the following specifications:
+On your Raspberry Pi, develop a client application that sequentially read an audio signal from the Speech Command test-set, apply some pre-processing, send the pre-processed signal (in SenML+JSON format) to the inference clients, and retrieve the neural networks outputs. Define and implement a cooperative inference policy to compute the final prediction combining the outcomes of the different inference clients. To run the application, develop a Python command with the following specifications:
 SYNOPSIS:
 ```bash
 python cooperative_client.py
