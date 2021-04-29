@@ -104,7 +104,8 @@ EXAMPLE:
 ```bash
 python HW1\_ex4\_Group1.py --input ./raw\_data --output ./fusion.tfrecord
 ```
-## Exercise 5: Low-power Data Collection and Pre-processing (3pt)
+
+## Exercise 5: Low-power Data Collection and Pre-processing (3pt)
 
 Write a Python script that iteratively samples 1-second audio signals, process the MFCCs, and store the output on disk. The script takes as input the number of samples to collect and the output path where to store the MFCCs.
 
