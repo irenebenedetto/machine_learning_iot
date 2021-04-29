@@ -45,7 +45,7 @@ the TFLite files with zlib, append ```.zlib``` to the filenames.
 Organize the files in two different folders, named notebook and rpi respectively, depending on the target device where the commands should run. In the report, briefly describe the Big/Little models and the “success checker” policy adopted. 
 
 ## Exercise 2: Cooperative Inference
-Develop a client application that receives a pre-processed audio signal, classify its content, and send the output of the last neural network layer (in JSON format). Run different $N$ ($N$ is an optimization parameter, $N > 1$) instances of the same application, each of them running a different prediction model (in tflite format). The application instances could potentially run on different devices (suggestion: launch them on different shells on your notebook). To run the application, develop a Python command with the following specifications:
+Develop a client application that receives a pre-processed audio signal, classify its content, and send the output of the last neural network layer (in JSON format). Run different $N$ ($N$ is an optimization parameter, `N > 1`) instances of the same application, each of them running a different prediction model (in tflite format). The application instances could potentially run on different devices (suggestion: launch them on different shells on your notebook). To run the application, develop a Python command with the following specifications:
  
 SYNOPSIS:
 ```bash
@@ -73,7 +73,7 @@ SYNOPSIS:
 ```bash
 python train.py --version <ID>
 ```
-where $<ID>$ is an integer number ranging from 1 to $N$.
+where `<ID>` is an integer number ranging from 1 to `N`.
 5. Any other .py file needed for the correct execution of the previous commands (if any).
 
 Organize the files in two different folders, named notebook and rpi respectively, depending on the target device where the commands should run.
